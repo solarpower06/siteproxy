@@ -26,15 +26,36 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: 22
-          
 
       - name: Install dependencies
         run: npm install
 
+      - name: Check Wrangler
+        run: npx wrangler --version
+
+      - name: Check Cloudflare authentication
+        run: npx wrangler whoami
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+
+      - name: Check build directory
+        run: |
+          echo "Current directory:"
+          pwd
+
+          echo "Root files:"
+          ls -la
+
+          echo "build directory:"
+          ls -la build || true
+
+          echo "build/cf_page directory:"
+          ls -la build/cf_page || true
+
       - name: Deploy to Cloudflare Pages
-        uses: cloudflare/wrangler-action@v4
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy build/cf_page --project-name=${{ secrets.CLOUDFLARE_PAGES_PROJECT }}
-          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          npx wrangler pages deploy build/cf_page \
+            --project-name="${{ secrets.CLOUDFLARE_PAGES_PROJECT }}"
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
